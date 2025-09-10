@@ -1,8 +1,9 @@
 cmake_minimum_required(VERSION 3.28)
 project(imr)
 
+set(BUILD_SHARED_LIBS OFF)
 find_package(Vulkan REQUIRED)
-option(IMR_USE_CUSTOM_GLFW "" OFF)
+option(IMR_USE_CUSTOM_GLFW "" ON)
 if (IMR_USE_CUSTOM_GLFW)
     include(FetchContent)
     option(GLFW_BUILD_TESTS "" OFF)
@@ -11,9 +12,9 @@ if (IMR_USE_CUSTOM_GLFW)
     option(GLFW_BUILD_EXAMPLES "" OFF)
     #option(GLFW_BUILD_WAYLAND "" OFF)
     FetchContent_Declare(
-        glfw
-        GIT_REPOSITORY https://github.com/glfw/glfw
-        GIT_TAG        3.4
+            glfw
+            GIT_REPOSITORY https://github.com/glfw/glfw
+            GIT_TAG 3.4
     )
     FetchContent_MakeAvailable(glfw)
 else ()

@@ -132,6 +132,7 @@ struct DescriptorBindHelper {
     ~DescriptorBindHelper();
 
     void set_storage_image(uint32_t set, uint32_t binding, Image& image, std::optional<VkImageSubresourceRange> = std::nullopt, std::optional<VkImageViewType> = std::nullopt);
+    void set_combined_image_sampler(uint32_t set, uint32_t binding, Image& image, VkSampler sampler);
     void commit(VkCommandBuffer);
 
     std::unique_ptr<Impl> _impl;

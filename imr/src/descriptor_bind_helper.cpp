@@ -134,6 +134,38 @@ void DescriptorBindHelper::set_storage_image(uint32_t set, uint32_t binding, Ima
     });
 }
 
+void DescriptorBindHelper::set_combined_image_sampler(uint32_t set, uint32_t binding, Image& image, VkSampler sampler) {
+    assert(!_impl->committed);
+    auto& device = _impl->device;
+
+    VkImageView view;
+    vkCreateImageView(device.device, tmpPtr((VkImageViewCreateInfo) {
+        .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+        .image = image.handle(),
+        .viewType = VK_IMAGE_VIEW_TYPE_2D,
+        .format = image.format(),
+        .subresourceRange = image.whole_image_subresource_range(),
+    }), nullptr, &view);
+
+    vkUpdateDescriptorSets(device.device, 1, tmpPtr((VkWriteDescriptorSet) {
+        .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+        .dstSet = _impl->get_or_create_set(set),
+        .dstBinding = binding,
+        .descriptorCount = 1,
+        .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+        .pImageInfo = tmpPtr((VkDescriptorImageInfo) {
+            .sampler = sampler,
+            .imageView = view,
+            .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+        }),
+    }), 0, nullptr);
+
+    auto deviceHandle = device.device.device;
+    _impl->cleanup.push_back([=]() {
+        vkDestroyImageView(deviceHandle, view, nullptr);
+    });
+}
+
 void DescriptorBindHelper::commit(VkCommandBuffer cmdbuf) {
     assert(!_impl->committed);
     for (unsigned set = 0; set < _impl->nsets; set++) {
