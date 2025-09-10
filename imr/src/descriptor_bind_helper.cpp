@@ -166,6 +166,21 @@ void DescriptorBindHelper::set_combined_image_sampler(uint32_t set, uint32_t bin
     });
 }
 
+void DescriptorBindHelper::set_uniform_buffer(const Device& device, const uint32_t set, const uint32_t binding, Buffer& buffer, const size_t offset, const size_t range) const {
+    vkUpdateDescriptorSets(device.device, 1, tmpPtr((VkWriteDescriptorSet) {
+        .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+        .dstSet = _impl->get_or_create_set(set),
+        .dstBinding = binding,
+        .descriptorCount = 1,
+        .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+        .pBufferInfo = tmpPtr((VkDescriptorBufferInfo) {
+            .buffer = buffer.handle,
+            .offset = offset,
+            .range = range,
+        }),
+    }), 0, nullptr);
+}
+
 void DescriptorBindHelper::commit(VkCommandBuffer cmdbuf) {
     assert(!_impl->committed);
     for (unsigned set = 0; set < _impl->nsets; set++) {

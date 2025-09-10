@@ -37,13 +37,21 @@ VkDeviceAddress Buffer::device_address() {
     }));
 }
 
+// For UBO, does not unmap memory again.
+// https://gpuopen-librariesandsdks.github.io/VulkanMemoryAllocator/html/memory_mapping.html
+void Buffer::ubo_upload(const void* data, const size_t n) const {
+    void* mapped_buffer;
+    CHECK_VK_THROW(vmaMapMemory(_impl->device._impl->allocator, _impl->allocation, &mapped_buffer));
+    memcpy(mapped_buffer, data, n);
+    // don't unmap, will be reused next frame
+    // (the allocation might still be unmapped by uploadDataSync, don't know how to prevent)
+}
+
+
 void Buffer::uploadDataSync(uint64_t offset, uint64_t size, void* data) {
     auto& device = _impl->device;
     if (_impl->memory_property & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) {
-        void* mapped_buffer;
-        CHECK_VK_THROW(vkMapMemory(device.device, memory, memory_offset, size, 0, (void**) &mapped_buffer));
-        memcpy(mapped_buffer, data, size);
-        vkUnmapMemory(device.device, memory);
+        CHECK_VK_THROW(vmaCopyMemoryToAllocation(_impl->device._impl->allocator, data, _impl->allocation, 0, size));
     } else if (_impl->usage & VK_BUFFER_USAGE_TRANSFER_DST_BIT) {
         // TODO: be less ridiculous, import host memory
         auto staging = imr::Buffer(device, size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);

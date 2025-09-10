@@ -11,6 +11,8 @@
 
 #include <cstdio>
 
+#include "vk_mem_alloc.h"
+
 #define CHECK_VK(op, else) if (op != VK_SUCCESS) { fprintf(stderr, "Check failed at %s\n", #op); else; }
 
 template<typename T>
@@ -69,6 +71,7 @@ struct Buffer {
     size_t memory_offset;
 
     void uploadDataSync(uint64_t offset, uint64_t size, void* data);
+    void ubo_upload(const void* data, size_t n) const;
 
     struct Impl;
     std::unique_ptr<Impl> _impl;
@@ -133,6 +136,8 @@ struct DescriptorBindHelper {
 
     void set_storage_image(uint32_t set, uint32_t binding, Image& image, std::optional<VkImageSubresourceRange> = std::nullopt, std::optional<VkImageViewType> = std::nullopt);
     void set_combined_image_sampler(uint32_t set, uint32_t binding, Image& image, VkSampler sampler);
+    void set_uniform_buffer(const Device &device, uint32_t set, uint32_t binding, Buffer &buffer, size_t offset = 0, size_t range =
+                                    VK_WHOLE_SIZE) const;
     void commit(VkCommandBuffer);
 
     std::unique_ptr<Impl> _impl;
