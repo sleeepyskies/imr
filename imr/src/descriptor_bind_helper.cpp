@@ -138,27 +138,53 @@ void DescriptorBindHelper::set_combined_image_sampler(uint32_t set, uint32_t bin
     assert(!_impl->committed);
     auto& device = _impl->device;
 
-    VkImageView view;
-    vkCreateImageView(device.device, tmpPtr((VkImageViewCreateInfo) {
-        .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-        .image = image.handle(),
-        .viewType = VK_IMAGE_VIEW_TYPE_2D,
-        .format = image.format(),
-        .subresourceRange = image.whole_image_subresource_range(),
-    }), nullptr, &view);
+    VkImageSubresourceRange subresourceRange = image.whole_image_subresource_range();
 
-    vkUpdateDescriptorSets(device.device, 1, tmpPtr((VkWriteDescriptorSet) {
+    subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    subresourceRange.baseMipLevel = 0;
+    subresourceRange.levelCount = 1;
+    subresourceRange.baseArrayLayer = 0;
+    subresourceRange.layerCount = image.layerCount;
+
+    VkImageViewCreateInfo createInfo = {
+        .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .image = image.handle(),
+        .viewType = VK_IMAGE_VIEW_TYPE_2D_ARRAY,
+        .format = image.format(),
+        .components = {
+            .r = VK_COMPONENT_SWIZZLE_IDENTITY,
+            .g = VK_COMPONENT_SWIZZLE_IDENTITY,
+            .b = VK_COMPONENT_SWIZZLE_IDENTITY,
+            .a = VK_COMPONENT_SWIZZLE_IDENTITY,
+        },
+        .subresourceRange = subresourceRange,
+    };
+
+    VkImageView view;
+    vkCreateImageView(device.device, &createInfo, nullptr, &view);
+
+    VkDescriptorImageInfo imageInfo = {
+        .sampler = sampler,
+        .imageView = view,
+        .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+    };
+
+    VkWriteDescriptorSet writeInfo = {
         .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+        .pNext = nullptr,
         .dstSet = _impl->get_or_create_set(set),
         .dstBinding = binding,
+        .dstArrayElement = 0,
         .descriptorCount = 1,
         .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-        .pImageInfo = tmpPtr((VkDescriptorImageInfo) {
-            .sampler = sampler,
-            .imageView = view,
-            .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-        }),
-    }), 0, nullptr);
+        .pImageInfo = &imageInfo,
+        .pBufferInfo = nullptr,
+        .pTexelBufferView = nullptr,
+    };
+
+    vkUpdateDescriptorSets(device.device, 1, &writeInfo, 0, nullptr);
 
     auto deviceHandle = device.device.device;
     _impl->cleanup.push_back([=]() {

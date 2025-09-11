@@ -21,7 +21,9 @@ VkImageType Image::type() const { return _impl->type; }
 VkExtent3D Image::size() const { return _impl->size; }
 VkFormat Image::format() const { return _impl->format; }
 
-Image::Image(Device& device, VkImageType dim, VkExtent3D size, VkFormat format, VkImageUsageFlagBits usage) {
+Image::Image(Device& device, VkImageType dim, VkExtent3D size, VkFormat format, VkImageUsageFlagBits usage, const uint32_t layers) {
+    layerCount = layers;
+
     _impl = std::make_unique<Impl>(device, dim, size, format);
     VkImageCreateInfo image_create_info = {
         .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
@@ -29,7 +31,7 @@ Image::Image(Device& device, VkImageType dim, VkExtent3D size, VkFormat format, 
         .format = format,
         .extent = size,
         .mipLevels = 1,
-        .arrayLayers = 1,
+        .arrayLayers = layers,
         .samples = VK_SAMPLE_COUNT_1_BIT,
         .tiling = VK_IMAGE_TILING_OPTIMAL,
         .usage = (VkImageUsageFlags) usage,
@@ -321,7 +323,7 @@ VkImageSubresourceRange Image::whole_image_subresource_range() const {
         .baseMipLevel = 0,
         .levelCount = 1,
         .baseArrayLayer = 0,
-        .layerCount = 1,
+        .layerCount = layerCount,
     };
     return range;
 }

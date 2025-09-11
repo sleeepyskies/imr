@@ -86,7 +86,9 @@ struct Image {
     VkExtent3D size() const;
     VkFormat format() const;
 
-    Image(Device&, VkImageType dim, VkExtent3D size, VkFormat format, VkImageUsageFlagBits usage);
+    uint32_t layerCount = 1;
+
+    Image(Device&, VkImageType dim, VkExtent3D size, VkFormat format, VkImageUsageFlagBits usage, uint32_t layers = 1);
     Image(Image&) = delete;
     Image(Image&&);
     ~Image();

@@ -50,6 +50,7 @@ ReflectedLayout::ReflectedLayout(imr::SPIRVModule& spirv_module, VkShaderStageFl
             desc_type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
         else if (def->payload.global_variable.type->tag == SampledImageType_TAG)
             desc_type = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+            // desc_type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
         else if (def->payload.global_variable.type->tag == SamplerType_TAG)
             desc_type = VK_DESCRIPTOR_TYPE_SAMPLER;
         else {
