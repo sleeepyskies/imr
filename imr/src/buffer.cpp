@@ -51,7 +51,7 @@ void Buffer::ubo_upload(const void* data, const size_t n) const {
 void Buffer::uploadDataSync(uint64_t offset, uint64_t size, void* data) {
     auto& device = _impl->device;
     if (_impl->memory_property & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) {
-        CHECK_VK_THROW(vmaCopyMemoryToAllocation(_impl->device._impl->allocator, data, _impl->allocation, 0, size));
+        CHECK_VK_THROW(vmaCopyMemoryToAllocation(_impl->device._impl->allocator, data, _impl->allocation, offset, size));
     } else if (_impl->usage & VK_BUFFER_USAGE_TRANSFER_DST_BIT) {
         // TODO: be less ridiculous, import host memory
         auto staging = imr::Buffer(device, size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
