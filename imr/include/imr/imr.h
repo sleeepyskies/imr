@@ -141,6 +141,7 @@ struct DescriptorBindHelper {
     void set_uniform_buffer(const Device &device, uint32_t set, uint32_t binding, Buffer &buffer, size_t offset = 0, size_t range =
                                     VK_WHOLE_SIZE) const;
     void commit(VkCommandBuffer);
+    void commit_frame(VkCommandBuffer) const;
 
     std::unique_ptr<Impl> _impl;
 };

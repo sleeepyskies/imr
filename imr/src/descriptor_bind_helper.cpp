@@ -216,4 +216,11 @@ void DescriptorBindHelper::commit(VkCommandBuffer cmdbuf) {
     _impl->committed = true;
 }
 
+void DescriptorBindHelper::commit_frame(const VkCommandBuffer cmdbuf) const {
+    for (unsigned set = 0; set < _impl->nsets; set++) {
+        if (_impl->sets[set])
+            vkCmdBindDescriptorSets(cmdbuf, _impl->bind_point, _impl->layout.pipeline_layout, set, 1, &_impl->sets[set], 0, nullptr);
+    }
+}
+
 }
